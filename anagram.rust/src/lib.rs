@@ -1,39 +1,27 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
-/// Normalize a word by:
-/// - converting it to lowercase
-/// - counting each character
-fn normalized_counts(word: &str) -> HashMap<char, usize> {
-    let mut counts = HashMap::new();
-    for ch in word.to_lowercase().chars() {
-        *counts.entry(ch).or_insert(0) += 1;
-    }
-    counts
-}
-
-/// Main function to find anagrams.
-///
-/// Takes:
-/// - `word`: the target word
-/// - `candidates`: a slice of strings with lifetime `'a`
-///
-/// Returns:
-/// - a list of candidates (same lifetime `'a`) that are valid anagrams.
-pub fn anagrams_for<'a>(word: &str, candidates: &[&'a str]) -> Vec<&'a str> {
-    let target_lower = word.to_lowercase();
-    let target_counts = normalized_counts(word);
+pub fn anagrams_for<'a>(word: &str, candidates: &[&'a str]) -> HashSet<&'a str> {
+    let word_lower = word.to_lowercase();
+    let mut word_sorted = word_lower.chars().collect::<Vec<_>>();
+    word_sorted.sort_unstable();
 
     candidates
         .iter()
         .copied()
         .filter(|candidate| {
-            // Rule: A word is not its own anagram.
-            if candidate.to_lowercase() == target_lower {
+            let candidate_lower = candidate.to_lowercase();
+
+            // skip identical words
+            if candidate_lower == word_lower {
                 return false;
             }
 
-            // Compare character counts
-            normalized_counts(candidate) == target_counts
+            // check if sorted letters match
+            let mut candidate_sorted = candidate_lower.chars().collect::<Vec<_>>();
+            candidate_sorted.sort_unstable();
+
+            candidate_sorted == word_sorted
         })
-        .collect()
+        .collect() // <-- collects into HashSet<&str>
+}
 }
